@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris Tegethoff's Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <script>
+        // Custom configuration for Tailwind CSS
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                    },
+                    maxWidth: {
+                        '8xl': '1440px',
+                    },
+                    height: {
+                        '90': '90px',
+                        '120': '120px', 
+                    },
+                    keyframes: { /* Merged from FTUX top cap */
+                        scrollLeft: {
+                            '0%': { transform: 'translateX(100vw)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        }
+                    },
+                    animation: { /* Merged from FTUX top cap */
+                        'scroll-left': 'scrollLeft linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Define CSS variable for header height */
+        :root {
+            --header-height: 80px; /* Corresponds to h-20 in Tailwind (80px) */
+        }
+
+        /* Basic body styling to remove margin, set font, and background */
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #ffffff;
+        }
+        /* Wrapper for each image/video project, handling responsiveness, fade-in, and hover effects */
+        .misc-image-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: block; /* Ensures it acts as a block-level link */
+            text-decoration: none; /* Removes underline from links */
+            color: inherit; /* Inherits text color */
+            background-color: #d0d0d0; /* Changed to a more noticeable placeholder background */
+            
+            /* Apply scroll-margin-top to account for sticky header when scrolling to this element */
+            scroll-margin-top: var(--header-height);
+        }
+
+        /* Smooth transform transition for image/video scaling on hover */
+        .misc-image-wrapper img,
+        .misc-image-wrapper video { 
+            /* Increased transition duration for a smoother effect (0.95s * 0.70 = 0.665s) */
+            transition: transform 0.665s cubic-bezier(0.85, 0, 0.15, 1); 
+        }
+
+        /* Scales the image/video when the 'hover-active' class is present on the wrapper (desktop) */
+        /* Or when 'overlay-active' is present (touch - though touch now directly navigates, this might be redundant) */
+        .misc-image-wrapper.hover-active img,
+        .misc-image-wrapper.hover-active video,
+        .misc-image-wrapper.overlay-active img, /* Kept for touch overlay activation */
+        .misc-image-wrapper.overlay-active video { 
+            /* Changed scale value to 1.1 for a larger zoom */
+            transform: scale(1.1);
+        }
+
+        /* Styling for the overlay that appears on hover/tap */
+        .hover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+            color: white; /* White text color */
+            display: flex; /* Flexbox for content positioning */
+            flex-direction: column; /* Stack content vertically */
+            justify-content: flex-end; /* Align content to the bottom */
+            align-items: flex-start; /* Align content to the left */
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.3s ease; /* Smooth fade-in/out for the overlay */
+            pointer-events: none; /* Allows clicks to pass through when hidden */
+            padding: 20px; /* Internal padding */
+            box-sizing: border-box; /* Includes padding in element's total width and height */
+            z-index: 1; /* Ensure overlay is above image/video */
+        }
+
+        /* Basic styling for the content within the overlay */
+        .overlay-content {
+            margin: 0; /* Remove default margin */
+            text-align: left; /* Align text to the left */
+            font-weight: 300; /* Light font weight */
+            font-size: 1.5rem; /* Base font size */
+            line-height: 1.4; /* Line height for readability */
+        }
+
+        /* Styling for the project title within the overlay */
+        .overlay-content .project-title {
+            font-size: 2rem; /* Larger font size for the title */
+            font-weight: 400; /* Regular font weight for the title */
+            display: block; /* Ensures it takes up full width */
+            margin-bottom: 0px; /* No bottom margin */
+            transition: transform 0.3s ease-out; /* Add transition for scaling */
+        }
+
+        /* Styling for project roles text within the overlay */
+        .overlay-content .project-roles {
+            font-size: 1.4rem; /* Slightly smaller font size for roles */
+            font-weight: 300; /* Light font weight for roles */
+            display: block; /* Ensures it takes up full width */
+            margin-top: -22.5px; /* Adjust top margin to bring it closer to the title */
+            transition: transform 0.3s ease-out; /* Add transition for scaling */
+        }
+        
+        /* Mobile specific font size adjustments for overlay content */
+        @media (max-width: 767px) {
+            .overlay-content .project-title {
+                font-size: 1.75rem; /* Slightly smaller on mobile (28px) */
+            }
+            .overlay-content .project-roles {
+                font-size: 1.2rem; /* Slightly smaller on mobile (19.2px) */
+            }
+            /* Scale up on mobile when overlay is active */
+            .misc-image-wrapper.overlay-active .overlay-content .project-title,
+            .misc-image-wrapper.overlay-active .overlay-content .project-roles {
+                transform: scale(1.05); /* Scale up by 5% */
+            }
+        }
+
+        /* Specific styles for the Google Play Games Notifications overlay to align content right and top */
+        .overlay-right-align-top { 
+            justify-content: flex-start; /* Align content to the top */
+            align-items: flex-end;   /* Align content to the right */
+        }
+
+        /* Text alignment for title and roles within the right-aligned overlay */
+        .overlay-right-align-top .project-title,
+        .overlay-right-align-top .project-roles {
+            text-align: right; /* Right align text */
+        }
+
+        /* Styles for the information icon button */
+        .info-icon {
+            position: absolute;
+            bottom: 20px; /* Position from bottom */
+            right: 20px; /* Position from right */
+            width: 80px; /* Fixed width */
+            height: 80px; /* Fixed height (creates a circle with border-radius: 50%) */
+            display: flex; /* Flexbox for centering content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            border-radius: 50%; /* Makes it a circle */
+            cursor: pointer; /* Indicates it's clickable */
+            z-index: 3; /* Ensure it's above overlay and text */
+            transition: background-color 0.3s ease; /* Smooth transition for background color */
+        }
+
+        /* Hover effect for the information icon */
+        .info-icon:hover {
+            background-color: transparent; /* Changed to transparent */
+        }
+
+        /* Styling for the SVG icon within the info button */
+        .info-icon svg {
+            width: 48px; /* Icon width */
+            height: 48px; /* Icon height */
+            color: #A0A0A0; /* Universal default light grey color */
+            transition: color 0.3s ease; /* Smooth transition for icon color */
+        }
+
+        /* Icon color change on hover */
+        .info-icon:hover svg {
+            color: white; /* White icon on hover */
+        }
+
+        /* Specific class for Roku Ad Platform info icon (overrides default color) */
+        .info-icon.info-icon-light-grey svg {
+            color: #C6C6C6; /* Specific light grey color for Roku Ad Platform */
+        }
+
+        /* Mute button styles, similar to info-icon but positioned differently */
+        .mute-toggle-button {
+            position: absolute;
+            bottom: 20px; /* Position from bottom */
+            right: 110px; /* Position from right (next to info icon) */
+            color: white; /* Text color */
+            z-index: 3; /* Ensure it's above overlay and text */
+            transition: background-color 0.3s ease; /* Smooth transition for background */
+            border-radius: 50%; /* Makes it a circle */
+            display: flex; /* Flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            width: 80px; /* Fixed width */
+            height: 80px; /* Fixed height */
+        }
+        /* Hover effect for the mute button */
+        .mute-toggle-button:hover {
+            background-color: transparent; /* Changed to transparent */
+        }
+        /* Styling for the SVG icon within the mute button */
+        .mute-toggle-button svg {
+            width: 48px; /* Icon width */
+            height: 48px; /* Icon height */
+            color: #4a4a4a; /* Default icon color */
+            transition: color 0.3s ease; /* Smooth transition for icon color */
+        }
+        /* Icon color change on hover */
+        .mute-toggle-button:hover svg {
+            color: white; /* White icon on hover */
+        }
+
+        /* Styles for "Click for case study" text within the overlay */
+        .case-study-text { 
+            position: absolute;
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%) scale(1); /* Initial scale 1 */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300; /* Light font weight */
+            font-size: 2rem; /* Large font size */
+            color: white; /* White text color */
+            text-align: center; /* Center text */
+            text-decoration: none; /* No underline */
+            opacity: 0; /* Initially hidden */
+            pointer-events: none; /* Allows clicks to pass through when hidden */
+            /* Combined transitions for opacity and transform for smooth effect (0.95s * 0.70 = 0.665s for transform) */
+            transition: opacity 0.3s ease, transform 0.665s cubic-bezier(0.85, 0, 0.15, 1);
+            z-index: 2; /* Above overlay, below buttons */
+            white-space: nowrap; /* Prevents text from wrapping */
+        }
+
+        /* Desktop Hover Effects (controlled by JS adding 'hover-active' class to parent) */
+        @media (hover: hover) and (pointer: fine) {
+            .misc-image-wrapper.hover-active .hover-overlay {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .misc-image-wrapper.hover-active img,
+            .misc-image-wrapper.hover-active video { 
+                transform: scale(1.1);
+            }
+            .misc-image-wrapper.hover-active .case-study-text {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            .misc-image-wrapper.hover-active .info-icon svg {
+                color: white;
+            }
+            /* Mute button color change when info icon is hovered (if it's in the same wrapper) */
+            .misc-image-wrapper.hover-active .mute-toggle-button svg {
+                color: white;
+            }
+        }
+
+        /* Touch Device Active State (managed by JS for info icon click) */
+        .misc-image-wrapper.overlay-active .hover-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .misc-image-wrapper.overlay-active img,
+        .misc-image-wrapper.overlay-active video { 
+            transform: scale(1.1);
+        }
+        .misc-image-wrapper.overlay-active .case-study-text {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        /* Hide info icon on touch when overlay is active */
+        .misc-image-wrapper.overlay-active .info-icon {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+
+        /* Styling for video elements within the wrapper */
+        .misc-image-wrapper video {
+            display: block; /* Block-level element */
+            width: 100%; /* Full width of parent */
+            height: auto; /* Maintain aspect ratio */
+            object-fit: cover; /* Cover the container, cropping if necessary */
+        }
+
+        /* Styles for video play/pause button (initially hidden) */
+        .video-play-pause-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 3; /* Ensure it's above overlay and text */
+            opacity: 1; /* Initially visible for interaction */
+            transition: opacity 0.3s ease;
+        }
+
+        /* Hide play/pause button when video is playing on desktop */
+        @media (hover: hover) and (pointer: fine) {
+            .video-play-pause-button.hidden-on-play {
+                opacity: 0;
+                pointer-events: none; /* Disable interaction when hidden */
+            }
+            .video-play-pause-button { /* Hide on desktop for videos that autoplay muted */
+                display: none;
+            }
+        }
+        /* Only show play button if needed for mobile interactions */
+        @media (max-width: 767px) {
+             .video-play-pause-button.hidden-on-play {
+                opacity: 0;
+                pointer-events: none;
+             }
+             .video-play-pause-button:not(.hidden-on-play) {
+                opacity: 1;
+                pointer-events: auto;
+             }
+        }
+        
+
+        .video-play-pause-button svg {
+            width: 60px;
+            height: 60px;
+            color: white;
+        }
+
+
+        /* Specific style for the last image wrapper to have a white background */
+        .misc-image-wrapper.the-end-graphic {
+            background-color: #ffffff; /* Pure white background */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="w-full">
+        <!-- START: Applied Top Cap Header from FTUX -->
+        <header class="sticky top-0 h-20 w-full bg-black z-50">
+            <!-- Added px-4 for padding on smaller screens -->
+            <div class="max-w-5xl mx-auto h-full flex items-center justify-between px-4">
+                <!-- Name and Title on the left -->
+                <!-- The "• Designer" part is now hidden on small screens -->
+                <span class="text-white text-2xl font-montserrat font-normal">Chris Tegethoff <span class="hidden md:inline">&bull; Designer</span></span>
+                <!-- Resume link on the right -->
+                <a href="https://drive.google.com/file/d/1bOVBcVUzmDVa5FMh-eLXwv2CFx6ZV5Tc/view?usp=sharing" target="_blank" class="text-white text-2xl font-montserrat font-normal hover:opacity-75 transition-opacity">Resume</a>
+            </div>
+        </header>
+        <!-- END: Applied Top Cap Header from FTUX -->
+
+        <main>
+            <div class="flex flex-col items-center">
+                <!-- Roku Design Systems Project Section -->
+                <a href="ds.html" data-original-href="ds.html" class="misc-image-wrapper max-w-5xl w-full" id="roku-ds-panel">
+                  <video src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1751304117/design_system_demo_optimized_ltsg2d.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Roku Design Systems</span><br>
+                      <span class="project-roles">Design, motion, pattern dev, documentation</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about Roku Design Systems">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- IOT Mobile App Project Section -->
+                <a href="iot.html" data-original-href="iot.html" class="misc-image-wrapper max-w-5xl w-full" id="iot-mobile-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746736301/iot-smart-home-ux_pch1h9.webp" alt="IOT Mobile App" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">IOT Mobile App</span><br>
+                      <span class="project-roles">Interaction design, rapid prototypes, research</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about IOT Mobile App">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- ROKU AD PLATFORM VIDEO PROJECT Section -->
+                <a href="ad_cs.html" data-original-href="ad_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="roku-ad-platform-panel">
+                  <video id="rokuAdPlatformVideo" src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1750959843/ad_crawl_uvkeig.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay"> 
+                    <p class="overlay-content">
+                      <span class="project-title">Roku Ad Platform</span><br>
+                      <span class="project-roles">Concept, motion, execution</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about Roku Ad Platform">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info info-icon-light-grey">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- Roku OS VIDEO PROJECT Section -->
+                <a href="roku_os_cs.html" data-original-href="roku_os_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="roku-os-panel">
+                  <video id="rokuOsVideo" src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1750800947/Slideshow_yrussz.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Roku OS</span><br>
+                      <span class="project-roles">Design, design systems, A11y, i18n</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button id="playPauseButtonRokuOs" class="video-play-pause-button" aria-label="Play/Pause video">
+                      <svg id="playIconRokuOs" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      <svg id="pauseIconRokuOs" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause hidden"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>
+                  </button>
+                  <button class="info-icon" aria-label="More information about Roku OS">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- Roku Mobile Design Project Section -->
+                <a href="roku_mobile_cs.html" data-original-href="roku_mobile_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="roku-mobile-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215248/Roku_Mobile_Design_tlqemb.webp" alt="Roku Mobile Design" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Roku Mobile Design</span><br>
+                      <span class="project-roles">Visual & interaction design, prototypes</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about Roku Mobile Design">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- SETTINGS OVER VIDEO PROJECT Section -->
+                <a href="settings_cs.html" data-original-href="settings_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="settings-video-panel">
+                  <video id="settingsOverVideo" src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1750964252/settings_dkyc1y.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Settings Over Video</span><br>
+                      <span class="project-roles">Design, new pattern development, research, rapid prototyping</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button id="playPauseButtonSettings" class="video-play-pause-button" aria-label="Play/Pause video">
+                      <svg id="playIconSettings" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      <svg id="pauseIconSettings" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause hidden"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>
+                  </button>
+                  <button class="info-icon" aria-label="More information about Settings Over Video">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- GOOGLE PLAY GAMES NOTIFICATIONS VIDEO PROJECT Section -->
+                <a href="notif_cs.html" data-original-href="notif_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="google-play-notifications-panel">
+                  <video id="googlePlayNotificationsVideo" src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1751328519/Notif_sequence_Main_3_qelvwb.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Desktop Notifications</span><br>
+                      <span class="project-roles">Strategy, design, motion</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <!-- NEW Mute/Unmute button for Google Play Notifications video -->
+                  <button id="muteToggleButtonGooglePlay" class="mute-toggle-button" aria-label="Toggle mute for Desktop Notifications video">
+                      <!-- Volume On Icon (initially hidden because video is muted by default) -->
+                      <svg id="volumeOnIconGooglePlay" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2 hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M23.31 1.69a16 16 0 0 1 0 20.62"/></svg>
+                      <!-- Volume Off Icon (initially visible because video is muted by default) -->
+                      <svg id="volumeOffIconGooglePlay" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-x"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>
+                  </button>
+                  <button class="info-icon" aria-label="More information about Desktop Notifications">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- MS Surface Music App Project Section -->
+                <a href="surface_cs.html" data-original-href="surface_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="ms-surface-music-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215240/MS_Surface_Music_App_drtojj.webp" alt="MS Surface Music App" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">MS Surface Music App</span><br>
+                      <span class="project-roles">Visual design</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about MS Surface Music App">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucude-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- Nike Training OS Project Section -->
+                <a href="nike_cs.html" data-original-href="nike_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="nike-training-os-panel">
+                  <video id="nikeTrainingVideo" src="https://res.cloudinary.com/dlbnlilfj/video/upload/v1750702214/nike_sst_a5kygz.mp4" 
+                         loop playsinline autoplay muted 
+                         class="w-full h-auto object-cover">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Nike Training OS</span><br>
+                      <span class="project-roles">Interaction design, motion, development</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <!-- Mute/Unmute button for video -->
+                  <button id="muteToggleButtonNike" class="mute-toggle-button" aria-label="Toggle mute for Nike Training OS video">
+                    <!-- Volume On Icon (initially visible) -->
+                    <svg id="volumeOnIconNike" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2 hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M23.31 1.69a16 16 0 0 1 0 20.62"/></svg>
+                    <!-- Volume Off Icon (initially hidden) -->
+                    <svg id="volumeOffIconNike" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-x"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>
+                  </button>
+                  <button class="info-icon" aria-label="More information about Nike Training OS">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2003/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- Nike Kids Concept Project Section -->
+                <a href="nike_kids_cs.html" data-original-href="nike_kids_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="nike-kids-concept-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215244/Nike_Kids_Website_Concept_bgrali.webp" alt="Nike Kids Website Concept" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Nike Kids Concept</span><br>
+                      <span class="project-roles">Visual & interaction design, prototypes</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about Nike Kids Concept">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                 <!-- Printer app Project Section -->
+                <a href="printer_cs.html" data-original-href="printer_cs.html" class="misc-image-wrapper max-w-5xl w-full" id="printer-app-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215246/Printer_UX_uph85f.webp" alt="Printer UX" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Printer app</span><br>
+                      <span class="project-roles">Creative direction, icon design</span>
+                    </p>
+                  </div>
+                  <span class="case-study-text">Click for case study</span>
+                  <button class="info-icon" aria-label="More information about Printer app">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </a>
+                <!-- Iconography Project Section -->
+                <div class="misc-image-wrapper max-w-5xl w-full" id="iconography-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215236/Iconography_j2j3m6.webp" alt="Iconography" class="w-full h-auto"/>
+                  <div class="hover-overlay">
+                    <p class="overlay-content">
+                      <span class="project-title">Iconography</span><br>
+                      <span class="project-roles">Icon design</span>
+                    </p>
+                  </div>
+                  <button class="info-icon" aria-label="More information about Iconography">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </div>
+                <!-- Icon Sketches Project Section -->
+                <div class="misc-image-wrapper max-w-5xl w-full" id="icon-sketches-panel">
+                  <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215235/Icon_Sketches_t9zci1.webp" alt="Icon Sketches" class="w-full h-auto"/>
+                  <div class="hover-overlay"><span>Icon Sketches</span></div>
+                  <button class="info-icon" aria-label="More information about Icon Sketches">
+                    <!-- Info icon SVG -->
+                    <svg xmlns="http://www.w3.org/2003/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- "The End" image section -->
+                <div class="misc-image-wrapper the-end-graphic max-w-5xl w-full my-16" id="the-end-panel">
+                    <img src="https://res.cloudinary.com/dlbnlilfj/image/upload/v1746215250/THE_END_dylo5r.svg" alt="The End" class="w-full h-auto">
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to detect if the device is touch-enabled
+            const isTouchDevice = () => {
+                // Check for touch events and maxTouchPoints for broader compatibility
+                return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            };
+
+            // Select all project wrappers
+            const miscImageWrappers = document.querySelectorAll('.misc-image-wrapper');
+
+            // Restore scroll position based on sessionStorage
+            const restoreScrollPosition = () => {
+                const storedPanelId = sessionStorage.getItem('lastVisitedPanelId');
+                const storedScrollY = sessionStorage.getItem('lastScrollY');
+
+                if (storedPanelId) {
+                    const targetElement = document.getElementById(storedPanelId);
+                    if (targetElement) {
+                        // Scroll instantly to the stored Y position if available, otherwise to the top of the panel
+                        const scrollTargetY = storedScrollY ? parseInt(storedScrollY, 10) : targetElement.offsetTop - document.querySelector('header').offsetHeight;
+
+                        window.scrollTo({
+                            top: scrollTargetY,
+                            behavior: 'instant' // Instant jump to the position
+                        });
+
+                        // Clear sessionStorage after restoring to prevent unexpected scrolls on subsequent visits
+                        sessionStorage.removeItem('lastVisitedPanelId');
+                        sessionStorage.removeItem('lastScrollY');
+                    }
+                } else if (win

@@ -731,6 +731,9 @@
                         e.stopPropagation(); // Prevent the click from bubbling up to the wrapper's <a> tag
 
                         if (isTouchDevice()) {
+                            // Prevent default link navigation when info icon is tapped on touch devices
+                            e.preventDefault(); 
+
                             // Toggle the overlay-active class on the parent wrapper
                             const currentlyActive = wrapper.classList.contains('overlay-active');
 
@@ -747,9 +750,11 @@
                             // If this wrapper was not active, activate it
                             if (!currentlyActive) {
                                 wrapper.classList.add('overlay-active');
-                                // The info icon is no longer hidden on mobile when overlay is active
+                                // Hide the info icon when its overlay is active on mobile
+                                infoIcon.classList.add('hidden'); 
                             } else {
                                 // If it was active, it's already closed by the loop above, just ensure icon is visible
+                                // Show the info icon when its overlay is dismissed on mobile
                                 infoIcon.classList.remove('hidden');
                             }
                         }

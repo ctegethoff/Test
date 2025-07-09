@@ -68,7 +68,8 @@
         .misc-image-wrapper img,
         .misc-image-wrapper video { 
             /* Increased transition duration for a smoother effect (0.95s * 0.70 = 0.665s) */
-            transition: transform 0.665s cubic-bezier(0.85, 0, 0.15, 1); 
+            /* Updated to be 30% faster: 0.665 * 0.70 = 0.4655s */
+            transition: transform 0.466s cubic-bezier(0.85, 0, 0.15, 1); 
         }
 
         /* Scales the image/video when the 'hover-active' class is present on the wrapper (desktop) */
@@ -241,7 +242,8 @@
             opacity: 0; /* Initially hidden */
             pointer-events: none; /* Allows clicks to pass through when hidden */
             /* Combined transitions for opacity and transform for smooth effect (0.95s * 0.70 = 0.665s for transform) */
-            transition: opacity 0.3s ease, transform 0.665s cubic-bezier(0.85, 0, 0.15, 1);
+            /* Updated to be 30% faster: 0.665 * 0.70 = 0.4655s */
+            transition: opacity 0.3s ease, transform 0.466s cubic-bezier(0.85, 0, 0.15, 1);
             z-index: 2; /* Above overlay, below buttons */
             white-space: nowrap; /* Prevents text from wrapping */
         }
@@ -285,10 +287,10 @@
             transform: translate(-50%, -50%) scale(1.1);
         }
         /* Hide info icon on touch when overlay is active */
-        .misc-image-wrapper.overlay-active .info-icon {
+        /* Removed: .misc-image-wrapper.overlay-active .info-icon {
             opacity: 0;
             pointer-events: none;
-        }
+        } */
 
 
         /* Styling for video elements within the wrapper */
@@ -652,16 +654,47 @@
             // Select all project wrappers
             const miscImageWrappers = document.querySelectorAll('.misc-image-wrapper');
 
+            // Define an array of panel IDs that should always scroll to their top when returning
+            // All case study panels are now included in this list.
+            const panelsToAlwaysScrollToTop = [
+                'roku-ds-panel',
+                'iot-mobile-panel',
+                'roku-ad-platform-panel',
+                'roku-os-panel',
+                'roku-mobile-panel',
+                'settings-video-panel',
+                'google-play-notifications-panel',
+                'ms-surface-music-panel',
+                'nike-training-os-panel',
+                'nike-kids-concept-panel',
+                'printer-app-panel'
+            ];
+
             // Restore scroll position based on sessionStorage
             const restoreScrollPosition = () => {
                 const storedPanelId = sessionStorage.getItem('lastVisitedPanelId');
                 const storedScrollY = sessionStorage.getItem('lastScrollY');
+                const headerHeight = document.querySelector('header').offsetHeight;
+                // Adjust this value as needed to fine-tune the scroll position.
+                // A positive value will scroll the page up more (making the target element appear higher).
+                const scrollOffsetBuffer = 10; 
 
                 if (storedPanelId) {
                     const targetElement = document.getElementById(storedPanelId);
                     if (targetElement) {
-                        // Scroll instantly to the stored Y position if available, otherwise to the top of the panel
-                        const scrollTargetY = storedScrollY ? parseInt(storedScrollY, 10) : targetElement.offsetTop - document.querySelector('header').offsetHeight;
+                        let scrollTargetY;
+                        // Check if the stored panel ID is in the list of panels that should always scroll to their top
+                        if (panelsToAlwaysScrollToTop.includes(storedPanelId)) {
+                            // Subtract an additional buffer to ensure the panel is fully visible at the top
+                            scrollTargetY = targetElement.offsetTop - headerHeight - scrollOffsetBuffer;
+                            // Ensure scrollTargetY doesn't go below 0
+                            scrollTargetY = Math.max(0, scrollTargetY);
+                        } else {
+                            // For other panels, use the exact stored scroll Y if available, otherwise fallback to panel top
+                            scrollTargetY = storedScrollY ? parseInt(storedScrollY, 10) : targetElement.offsetTop - headerHeight;
+                            // Ensure scrollTargetY doesn't go below 0
+                            scrollTargetY = Math.max(0, scrollTargetY);
+                        }
 
                         window.scrollTo({
                             top: scrollTargetY,
@@ -672,4 +705,198 @@
                         sessionStorage.removeItem('lastVisitedPanelId');
                         sessionStorage.removeItem('lastScrollY');
                     }
-                } else if (win
+                } else if (window.location.hash) {
+                    // Fallback for direct links with hash (e.g., if user manually types index.html#panel-id)
+                    const panelIdFromHash = window.location.hash.substring(1);
+                    const targetElement = document.getElementById(panelIdFromHash);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            block: 'start',
+                            behavior: 'smooth' // Smooth scroll for direct hash links
+                        });
+                    }
+                }
+            };
+
+            // Iterate over each project wrapper to attach event listeners
+            miscImageWrappers.forEach(wrapper => {
+                const infoIcon = wrapper.querySelector('.info-icon');
+                const muteButton = wrapper.querySelector('.mute-toggle-button'); 
+                // Check if it's a case study link by looking for the data-original-href attribute
+                const isCaseStudyLink = wrapper.tagName === 'A' && wrapper.hasAttribute('data-original-href');
+
+                // Info icon and mute button clicks should stop propagation to prevent interference with parent elements.
+                if (infoIcon) {
+                    infoIcon.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent the click from bubbling up to the wrapper's <a> tag
+
+                        if (isTouchDevice()) {
+                            // Toggle the overlay-active class on the parent wrapper
+                            const currentlyActive = wrapper.classList.contains('overlay-active');
+
+                            // Close all other active overlays first
+                            miscImageWrappers.forEach(otherWrapper => {
+                                if (otherWrapper.classList.contains('overlay-active')) {
+                                    otherWrapper.classList.remove('overlay-active');
+                                    const otherInfoIcon = otherWrapper.querySelector('.info-icon');
+                                    // Ensure info icon is visible when another overlay is closed
+                                    if (otherInfoIcon) otherInfoIcon.classList.remove('hidden'); 
+                                }
+                            });
+
+                            // If this wrapper was not active, activate it
+                            if (!currentlyActive) {
+                                wrapper.classList.add('overlay-active');
+                                // The info icon is no longer hidden on mobile when overlay is active
+                            } else {
+                                // If it was active, it's already closed by the loop above, just ensure icon is visible
+                                infoIcon.classList.remove('hidden');
+                            }
+                        }
+                    });
+
+                    // Add desktop hover listeners ONLY if not a touch device
+                    if (!isTouchDevice()) {
+                        infoIcon.addEventListener('mouseenter', () => {
+                            wrapper.classList.add('hover-active');
+                        });
+                        infoIcon.addEventListener('mouseleave', () => {
+                            wrapper.classList.remove('hover-active');
+                        });
+                    }
+                }
+                if (muteButton) { 
+                    muteButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                    });
+                }
+
+                // Store the ID of the current panel and scroll position in sessionStorage before navigation
+                if (isCaseStudyLink) {
+                    wrapper.addEventListener('mousedown', () => { // Use mousedown to capture scroll before navigation
+                        sessionStorage.setItem('lastVisitedPanelId', wrapper.id);
+                        sessionStorage.setItem('lastScrollY', window.scrollY); // Store current scroll position
+                    });
+                    // No need to preventDefault or manually set window.location.href here.
+                    // Let the browser handle the native <a> tag navigation.
+                }
+            });
+
+            // Function to set up mute/unmute toggle for videos
+            const setupMuteToggle = (videoId, muteButtonId, volumeOnId, volumeOffId) => {
+                const videoElement = document.getElementById(videoId);
+                const muteToggleButton = document.getElementById(muteButtonId);
+                const volumeOnIcon = document.getElementById(volumeOnId);
+                const volumeOffIcon = document.getElementById(volumeOffId);
+
+                if (muteToggleButton && videoElement) {
+                    // On mobile, always muted, no toggle
+                    if (isTouchDevice()) {
+                         videoElement.muted = true; // Ensure muted
+                         if (muteToggleButton) muteToggleButton.style.display = 'none'; // Hide mute button
+                    } else {
+                        // Desktop mute/unmute logic
+                        muteToggleButton.addEventListener('click', () => {
+                            videoElement.muted = !videoElement.muted; // Toggle muted state
+                            // Toggle visibility of volume on/off icons based on muted state
+                            if (videoElement.muted) {
+                                if (volumeOnIcon) volumeOnIcon.classList.add('hidden');
+                                if (volumeOffIcon) volumeOffIcon.classList.remove('hidden');
+                            } else {
+                                if (volumeOnIcon) volumeOnIcon.classList.remove('hidden');
+                                if (volumeOffIcon) volumeOffIcon.classList.add('hidden');
+                            }
+                        });
+                    }
+                }
+            };
+
+            // Setup mute toggle specifically for the Nike Training OS video
+            setupMuteToggle('nikeTrainingVideo', 'muteToggleButtonNike', 'volumeOnIconNike', 'volumeOffIconNike');
+
+            // Setup mute toggle for the Google Play Notifications video
+            setupMuteToggle('googlePlayNotificationsVideo', 'muteToggleButtonGooglePlay', 'volumeOnIconGooglePlay', 'volumeOffIconGooglePlay');
+
+
+            // New: Play/Pause control for Roku OS and Settings Over Video
+            const setupVideoPlayPause = (videoId, playPauseButtonId, playIconId, pauseIconId) => {
+                const videoElement = document.getElementById(videoId);
+                const playPauseButton = document.getElementById(playPauseButtonId);
+                const playIcon = document.getElementById(playIconId);
+                const pauseIcon = document.getElementById(pauseIconId);
+
+                if (!videoElement || !playPauseButton) {
+                    return; 
+                }
+
+                if (isTouchDevice()) {
+                     // For mobile, remove play/pause button as videos should autoplay muted
+                     playPauseButton.style.display = 'none';
+                } else {
+                    // Desktop play/pause button logic remains
+                    // Initial state for desktop: If video is paused or ended, show play icon
+                    if (videoElement.paused || videoElement.ended) {
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                        playPauseButton.classList.remove('hidden-on-play'); // Ensure button is visible
+                    } else {
+                        playIcon.classList.add('hidden');
+                        pauseIcon.classList.remove('hidden');
+                        playPauseButton.classList.add('hidden-on-play'); // Hide button if already playing (e.g. autoplay worked)
+                    }
+                    
+                    // Add click listener to the play/pause button
+                    playPauseButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent wrapper's click listener from interfering
+
+                        if (videoElement.paused || videoElement.ended) {
+                            videoElement.play().then(() => {
+                                playIcon.classList.add('hidden');
+                                pauseIcon.classList.remove('hidden');
+                                playPauseButton.classList.add('hidden-on-play'); // Hide button after successful play
+                            }).catch(error => {
+                                console.error('Error playing video:', error);
+                                // If play fails, keep button visible and in play state
+                                playIcon.classList.remove('hidden');
+                                pauseIcon.classList.add('hidden');
+                                playPauseButton.classList.remove('hidden-on-play');
+                            });
+                        } else {
+                            videoElement.pause();
+                            playIcon.classList.remove('hidden');
+                            pauseIcon.classList.add('hidden');
+                            playPauseButton.classList.remove('hidden-on-play'); // Show button when paused
+                        }
+                    });
+
+                    // Listen for video events to update button state
+                    videoElement.addEventListener('play', () => {
+                        playIcon.classList.add('hidden');
+                        pauseIcon.classList.remove('hidden');
+                        playPauseButton.classList.add('hidden-on-play');
+                    });
+                    videoElement.addEventListener('pause', () => {
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                        playPauseButton.classList.remove('hidden-on-play');
+                    });
+                    videoElement.addEventListener('ended', () => {
+                        playIcon.classList.remove('hidden');
+                        pauseIcon.classList.add('hidden');
+                        playPauseButton.classList.remove('hidden-on-play');
+                    });
+                }
+            };
+
+            // Setup play/pause for Roku OS video
+            setupVideoPlayPause('rokuOsVideo', 'playPauseButtonRokuOs', 'playIconRokuOs', 'pauseIconRokuOs');
+            // Setup play/pause for Settings Over Video
+            setupVideoPlayPause('settingsOverVideo', 'playPauseButtonSettings', 'playIconSettings', 'pauseIconSettings');
+
+
+            // Restore scroll position on initial page load
+            restoreScrollPosition();
+        });
+    </script>
+</body>
+</html>
